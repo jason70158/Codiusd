@@ -88,7 +88,9 @@ export default function (server: Hapi.Server, deps: Injector) {
       channel.write(' ')
     }, 10000)
 
-    postPod(request, h).then((result) => {
+    postPod(request, h).catch((e) => {
+      log.error('error uploading pod. error=' + e.message)
+    }).then((result) => {
       clearInterval(streamer)
       channel.write(result)
       channel.end()
