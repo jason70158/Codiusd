@@ -13,6 +13,7 @@ import ManifestDatabase from '../services/ManifestDatabase'
 import CodiusDB from '../util/CodiusDB'
 import ManifestParser from '../services/ManifestParser'
 import os = require('os')
+import stream = require('stream')
 const Enjoi = require('enjoi')
 const PodRequest = require('../schemas/PodRequest.json')
 import BigNumber from 'bignumber.js'
@@ -79,6 +80,26 @@ export default function (server: Hapi.Server, deps: Injector) {
     }
 
     return duration
+  }
+
+  async function streamPostPod (request: any, h: Hapi.ResponseToolkit) {
+    const channel = new stream.PassThrough()
+    const streamer = setInterval(() => {
+      channel.write(' ')
+    }, 10000)
+
+    postPod(request, h).then((result) => {
+      clearInterval(streamer)
+      channel.write(result)
+      channel.end()
+    }).catch((e) => {
+      log.error('error uploading pod. error=' + e.message)
+      clearInterval(streamer)
+      channel.write(e)
+      channel.end()
+    })
+
+    return h.response(channel).header('Content-type', 'application/json')
   }
 
   // TODO: how to add plugin decorate functions to Hapi.Request type
@@ -223,7 +244,7 @@ export default function (server: Hapi.Server, deps: Injector) {
   server.route({
     method: 'POST',
     path: '/pods',
-    handler: postPod,
+    handler: streamPostPod,
     options: {
       validate: {
         payload: Enjoi(PodRequest),
