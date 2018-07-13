@@ -93,8 +93,11 @@ export default function (server: Hapi.Server, deps: Injector) {
       throw Boom.serverUnavailable('Failed to Upload Pod')
     }).then((result) => {
       clearInterval(streamer)
+      console.log('cleared interval')
       channel.write(JSON.stringify(result))
+      console.log('wrote to channel')
       channel.end()
+      console.log('closed channel')
     }).catch((e) => {
       log.error('error uploading pod. error=' + e.message)
       clearInterval(streamer)
