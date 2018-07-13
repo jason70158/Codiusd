@@ -89,9 +89,11 @@ export default function (server: Hapi.Server, deps: Injector) {
     }, 10000)
 
     postPod(request, h).catch((e) => {
+      console.log('caught first error')
       log.error('error uploading pod. error=' + e.message)
       throw Boom.serverUnavailable('Failed to Upload Pod')
     }).then((result) => {
+      console.log('got result: ' + result)
       clearInterval(streamer)
       console.log('cleared interval')
       channel.write(JSON.stringify(result))
@@ -99,6 +101,7 @@ export default function (server: Hapi.Server, deps: Injector) {
       channel.end()
       console.log('closed channel')
     }).catch((e) => {
+      console.log('caught second error')
       log.error('error uploading pod. error=' + e.message)
       clearInterval(streamer)
       channel.write(e)
