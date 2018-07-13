@@ -90,6 +90,7 @@ export default function (server: Hapi.Server, deps: Injector) {
 
     postPod(request, h).catch((e) => {
       log.error('error uploading pod. error=' + e.message)
+      throw Boom.serverUnavailable('Failed to Upload Pod')
     }).then((result) => {
       clearInterval(streamer)
       channel.write(JSON.stringify(result))
@@ -99,6 +100,7 @@ export default function (server: Hapi.Server, deps: Injector) {
       clearInterval(streamer)
       channel.write(e)
       channel.end()
+      throw Boom.serverUnavailable('Failed to Upload Pod')
     })
 
     return h.response(channel).header('Content-type', 'application/json')
